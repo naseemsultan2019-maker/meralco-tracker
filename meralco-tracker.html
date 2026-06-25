@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Meralco Bill</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--yellow:#FFD600;--green:#00C853;--green-l:#E8F5E9;--red:#FF3B30;--red-l:#FFEBE9;
+    --bg:#F5F5F5;--card:#FFF;--text:#1A1A1A;--muted:#777;--border:#E8E8E8;--radius:18px}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:16px;max-width:480px;margin:0 auto}
+
+  .header{background:#FFD600;border-radius:var(--radius);padding:22px 20px;margin-bottom:16px;text-align:center}
+  .header h1{font-size:21px;font-weight:800}
+  .header p{font-size:13px;color:#555;margin-top:4px}
+
+  .card{background:var(--card);border-radius:var(--radius);padding:22px;margin-bottom:16px;border:1px solid var(--border)}
+
+  /* BIG ANSWER */
+  .big-answer{background:#1A1A1A;color:#fff;border-radius:var(--radius);padding:28px 20px;margin-bottom:16px;text-align:center}
+  .big-answer .label{font-size:14px;color:#FFD600;font-weight:600;margin-bottom:8px}
+  .big-answer .amount{font-size:48px;font-weight:900;line-height:1;letter-spacing:-1px}
+  .big-answer .sub{font-size:13px;color:#BBB;margin-top:10px}
+
+  .step-num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:#FFD600;color:#1A1A1A;border-radius:50%;font-weight:800;font-size:14px;margin-right:8px}
+  .step-title{font-size:16px;font-weight:700;display:flex;align-items:center;margin-bottom:6px}
+  .step-help{font-size:13px;color:var(--muted);margin-bottom:14px;margin-left:34px;line-height:1.5}
+
+  label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:7px}
+  input{width:100%;padding:15px 16px;border:2px solid var(--border);border-radius:12px;font-size:18px;font-family:'Inter',sans-serif;font-weight:700;color:var(--text);background:#FAFAFA;outline:none}
+  input:focus{border-color:#FFD600;background:#fff}
+  .field{margin-bottom:14px}
+
+  .btn{width:100%;padding:17px;background:#1A1A1A;color:#FFD600;border:none;border-radius:14px;font-size:16px;font-weight:800;font-family:'Inter',sans-serif;cursor:pointer}
+  .btn:active{transform:scale(.98)}
+  .btn.yellow{background:#FFD600;color:#1A1A1A}
+
+  .mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+  .mini{background:var(--bg);border-radius:14px;padding:16px 12px;text-align:center}
+  .mini .v{font-size:24px;font-weight:800;line-height:1}
+  .mini .l{font-size:12px;color:var(--muted);font-weight:600;margin-top:5px}
+  .mini.green{background:var(--green-l)} .mini.green .v{color:#00A846}
+  .mini.red{background:var(--red-l)} .mini.red .v{color:var(--red)}
+
+  .alert{border-radius:14px;padding:16px;font-size:14px;font-weight:600;margin-top:16px;display:flex;gap:11px;align-items:flex-start;line-height:1.5}
+  .alert.ok{background:var(--green-l);color:#00872E}
+  .alert.warn{background:#FFF3E0;color:#E65100}
+  .alert.danger{background:var(--red-l);color:#C0392B}
+  .alert .ic{font-size:22px;flex-shrink:0}
+
+  .history{margin-top:4px}
+  .hist-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--border);font-size:14px}
+  .hist-row:last-child{border-bottom:none}
+  .hist-date{font-weight:600;color:var(--muted)}
+  .hist-amt{font-weight:800;font-size:16px}
+  .hist-del{background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;margin-left:10px;padding:0 4px}
+  .empty{text-align:center;color:var(--muted);font-size:13px;padding:18px 0}
+
+  .results{display:none}
+  .results.visible{display:block}
+  .footer{text-align:center;font-size:11px;color:#AAA;padding:8px 0 24px;line-height:1.6}
+  .tips .tip{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px solid #F0F0F0;font-size:13px;font-weight:500;color:#333;line-height:1.5}
+  .tips .tip:last-child{border-bottom:none}
+  .tips .tip .ic{font-size:20px;flex-shrink:0}
+  .card-label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>💡 My Meralco Bill</h1>
+  <p>See how much you owe — before the bill arrives</p>
+</div>
+
+<!-- STEP 1: ONE-TIME SETUP -->
+<div class="card" id="setupCard">
+  <div class="step-title"><span class="step-num">1</span> Set this up once</div>
+  <div class="step-help">Look at your latest Meralco bill. Find the number it ended at, and the date your bill starts again.</div>
+
+  <div class="field">
+    <label>Meter number on your last bill</label>
+    <input type="number" id="startReading" placeholder="Example: 37170">
+  </div>
+  <div class="field">
+    <label>What date does this bill start?</label>
+    <input type="date" id="startDate">
+  </div>
+  <div class="field">
+    <label>How much money is your budget? (optional)</label>
+    <input type="number" id="budget" placeholder="Example: 5000">
+  </div>
+  <button class="btn" onclick="saveSetup()">Save</button>
+</div>
+
+<!-- STEP 2: DAILY -->
+<div class="card" id="dailyCard" style="display:none">
+  <div class="step-title"><span class="step-num">2</span> Check your meter today</div>
+  <div class="step-help">Go to your Meralco meter outside. Type the big number you see.</div>
+  <div class="field">
+    <label>Today's meter number</label>
+    <input type="number" id="todayReading" placeholder="Example: 37506" inputmode="numeric">
+  </div>
+  <button class="btn yellow" onclick="addToday()">Show My Bill</button>
+  <p style="font-size:12px;color:#999;text-align:center;margin-top:12px;cursor:pointer" onclick="editSetup()">⚙️ Change my setup</p>
+</div>
+
+<!-- RESULTS -->
+<div class="results" id="results">
+
+  <div class="big-answer">
+    <div class="label">YOUR BILL SO FAR</div>
+    <div class="amount" id="bigAmount">₱0</div>
+    <div class="sub" id="bigSub">—</div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">By the end of this month</div>
+    <div class="mini-grid">
+      <div class="mini red"><div class="v" id="projBill">₱0</div><div class="l">Estimated Bill</div></div>
+      <div class="mini green" id="budgetMini"><div class="v" id="budgetLeft">—</div><div class="l">Money Left</div></div>
+    </div>
+    <div class="alert ok" id="alert"><span class="ic">✅</span><span id="alertMsg">—</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Your daily check-ins</div>
+    <div class="history" id="history"></div>
+  </div>
+
+  <div class="card tips">
+    <div class="card-label">Easy ways to save</div>
+    <div id="tips"></div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Free to use &amp; share 💛<br>Your numbers stay private on your phone
+</div>
+
+<script>
+  var KEY='myMeralcoBill';
+  var state=load();
+
+  function load(){try{return JSON.parse(localStorage.getItem(KEY))||fresh()}catch(e){return fresh()}}
+  function fresh(){return{startReading:null,startDate:'',budget:null,readings:[]}}
+  function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+
+  document.addEventListener('DOMContentLoaded',function(){
+    var t=new Date().toISOString().split('T')[0];
+    if(state.startReading!=null){
+      showDaily();
+      if(state.readings.length)render();
+    }
+  });
+
+  function saveSetup(){
+    var sr=parseFloat(document.getElementById('startReading').value);
+    var sd=document.getElementById('startDate').value;
+    var bg=parseFloat(document.getElementById('budget').value)||null;
+    if(!sr){alert('Please type the meter number from your last bill.');return}
+    if(!sd){alert('Please choose the date your bill starts.');return}
+    state.startReading=sr;state.startDate=sd;state.budget=bg;
+    save();showDaily();
+    if(state.readings.length)render();
+  }
+
+  function showDaily(){
+    document.getElementById('setupCard').style.display='none';
+    document.getElementById('dailyCard').style.display='block';
+  }
+  function editSetup(){
+    document.getElementById('startReading').value=state.startReading||'';
+    document.getElementById('startDate').value=state.startDate||'';
+    document.getElementById('budget').value=state.budget||'';
+    document.getElementById('setupCard').style.display='block';
+    document.getElementById('dailyCard').style.display='none';
+  }
+
+  function addToday(){
+    var r=parseFloat(document.getElementById('todayReading').value);
+    if(!r){alert('Please type today\'s meter number.');return}
+    if(r<state.startReading){alert('That number is smaller than your starting number. Please check your meter again.');return}
+    var today=new Date().toISOString().split('T')[0];
+    state.readings=state.readings.filter(function(x){return x.date!==today});
+    state.readings.push({date:today,reading:r});
+    state.readings.sort(function(a,b){return a.date.localeCompare(b.date)});
+    save();
+    document.getElementById('todayReading').value='';
+    render();
+  }
+
+  function delReading(d){
+    state.readings=state.readings.filter(function(x){return x.date!==d});
+    save();
+    state.readings.length?render():(document.getElementById('results').className='results');
+  }
+
+  var RATE=15.71;
+
+  function render(){
+    if(!state.readings.length)return;
+    var latest=state.readings[state.readings.length-1];
+    var used=latest.reading-state.startReading;
+    var billNow=used*RATE;
+
+    var sDate=new Date(state.startDate);
+    var lDate=new Date(latest.date);
+    var daysIn=Math.max(Math.round((lDate-sDate)/86400000),1);
+    var perDay=billNow/daysIn;
+    var projBill=perDay*30;
+
+    document.getElementById('bigAmount').textContent='₱'+Math.round(billNow).toLocaleString();
+    document.getElementById('bigSub').textContent=Math.round(used).toLocaleString()+' kWh used • around ₱'+Math.round(perDay).toLocaleString()+' per day';
+    document.getElementById('projBill').textContent='₱'+Math.round(projBill).toLocaleString();
+
+    var mini=document.getElementById('budgetMini');
+    var al=document.getElementById('alert'),msg=document.getElementById('alertMsg');
+    if(state.budget){
+      var left=state.budget-projBill;
+      document.getElementById('budgetLeft').textContent='₱'+Math.round(Math.abs(left)).toLocaleString();
+      mini.className='mini '+(left>=0?'green':'red');
+      var pct=projBill/state.budget;
+      if(pct<.75){al.className='alert ok';al.querySelector('.ic').textContent='✅';
+        msg.textContent='You\'re doing great! Your bill should stay under ₱'+state.budget.toLocaleString()+'.'}
+      else if(pct<1){al.className='alert warn';al.querySelector('.ic').textContent='⚠️';
+        msg.textContent='Careful — you\'re getting close to your ₱'+state.budget.toLocaleString()+' budget. Try to use less.'}
+      else{al.className='alert danger';al.querySelector('.ic').textContent='🚨';
+        msg.textContent='Your bill may go over by ₱'+Math.round(projBill-state.budget).toLocaleString()+'. Time to save power!'}
+    }else{
+      document.getElementById('budgetLeft').textContent='—';
+      mini.className='mini green';
+      al.className='alert ok';al.querySelector('.ic').textContent='ℹ️';
+      msg.textContent='Tip: add a budget in your setup to know if you\'re overspending.'}
+
+    var prev=state.startReading;
+    var html=state.readings.map(function(r){
+      var u=r.reading-prev;prev=r.reading;
+      var d=new Date(r.date);
+      var nice=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      return '<div class="hist-row"><span class="hist-date">'+nice+'</span><span><span class="hist-amt">₱'+Math.round((r.reading-state.startReading)*RATE).toLocaleString()+'</span><button class="hist-del" onclick="delReading(\''+r.date+'\')">✕</button></span></div>';
+    }).join('');
+    document.getElementById('history').innerHTML=html||'<div class="empty">No check-ins yet</div>';
+
+    var tips=[['🌡️','Set your aircon to 25°C instead of 18°C. Each degree higher saves money.'],
+      ['🔌','Unplug chargers, TV, and rice cooker when not in use — they still pull power.'],
+      ['💡','Change old bulbs to LED. They use much less electricity.'],
+      ['🌙','Do laundry and ironing at night when power is cheaper.']];
+    if(perDay>180)tips.unshift(['❄️','Your daily cost is high. Your aircon or ref may be running too much.']);
+    document.getElementById('tips').innerHTML=tips.map(function(t){
+      return '<div class="tip"><span class="ic">'+t[0]+'</span><span>'+t[1]+'</span></div>'}).join('');
+
+    document.getElementById('results').className='results visible';
+  }
+</script>
+</body>
+</html>
